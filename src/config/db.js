@@ -1,12 +1,25 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// HYBRID CONFIGURATION: 
+// If Render provides a DATABASE_URL, use it with SSL. 
+// Otherwise, use your local variables for local development.
+const dbConfig = process.env.DATABASE_URL 
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false } // Crucial for Render!
+    }
+  : {
+      user: process.env.DB_USER,
+      host: process.env.DB_HOST,
+      database: process.env.DB_DATABASE,
+      password: process.env.DB_PASSWORD,
+      port: process.env.DB_PORT,
+    };
+
+// Initialize the pool with the chosen config + your custom timeouts
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  ...dbConfig,
   // Max number of clients in the pool
   max: 20,
   // How long a client is allowed to remain idle before being closed

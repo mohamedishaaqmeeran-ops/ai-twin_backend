@@ -13,7 +13,7 @@ const startServer = async () => {
     // 2. Start listening for incoming HTTP traffic
     app.listen(PORT, () => {
       console.log(`=========================================`);
-      console.log(`  HOOOD Server running in ${process.env.NODE_ENV} mode`);
+      console.log(`  TWIN Server running in ${process.env.NODE_ENV} mode`);
       console.log(`  Listening on local network port: ${PORT}`);
       console.log(`=========================================`);
     });
