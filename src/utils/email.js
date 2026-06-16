@@ -1,8 +1,13 @@
-const { Resend } = require('resend');
-require('dotenv').config();
+const { Resend } = require("resend");
 
-// Initialize Resend with your API Key
+if (!process.env.RESEND_API_KEY) {
+  console.error("RESEND_API_KEY is missing from .env");
+  process.exit(1);
+}
+
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// your existing email functions below
 
 const sendVerificationEmail = async (toEmail, verificationToken) => {
   const verifyLink = `${process.env.APP_URL}/verify-email?token=${verificationToken}`;
