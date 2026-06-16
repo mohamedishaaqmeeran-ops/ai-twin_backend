@@ -8,7 +8,7 @@ const schemas = require('./auth.validation'); // Import your specific rules
 const router = express.Router();
 
 // Sensitive routes now have Rate Limiting AND strict Input Validation
-router.post('/signup', authLimiter, validate(schemas.signupSchema), authController.handleSignup);
+router.post('/register', authLimiter, validate(schemas.signupSchema), authController.handleSignup);
 router.post('/login', authLimiter, validate(schemas.loginSchema), authController.handleLogin);
 router.post('/forgot-password', authLimiter, validate(schemas.forgotPasswordSchema), authController.handleForgotPassword);
 router.post('/reset-password', authLimiter, validate(schemas.resetPasswordSchema), authController.handleResetPassword);
