@@ -11,8 +11,12 @@ app.set('trust proxy', 1);
 // This allows your React frontend (running on a different port) to talk to your API
 // Look at your browser's address bar when you open test_login.html.
 // Replace the 5500 URL below with whatever URL your browser is currently showing.
-const allowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5500', 'http://localhost:5500'];
-
+const allowedOrigins = [
+    'http://localhost:5173', 
+    'http://127.0.0.1:5500', 
+    'http://localhost:5500',
+    'https://ai-twin-63zh.vercel.app' // <-- Your new live frontend domain!
+  ];
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
