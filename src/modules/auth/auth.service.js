@@ -25,16 +25,24 @@ class AuthService {
     // 2. SQL Upsert query: Insert new user OR update last_login if they already exist
     // Update the SQL Upsert query to explicitly set is_verified to true
     const upsertQuery = `
-      INSERT INTO users (google_id, email, name, avatar_url, is_verified)
-      VALUES ($1, $2, $3, $4, TRUE)
-      ON CONFLICT (google_id) 
-      DO UPDATE SET 
-        last_login = CURRENT_TIMESTAMP,
-        avatar_url = EXCLUDED.avatar_url,
-        name = EXCLUDED.name,
-        is_verified = TRUE
-      RETURNING id, google_id, email, name, avatar_url;
-    `;
+  INSERT INTO users (
+    google_id,
+    email,
+    name,
+    avatar_url,
+    is_verified,
+    role,
+    plan
+  )
+  VALUES ($1, $2, $3, $4, TRUE, 'user', 'free')
+  ON CONFLICT (google_id)
+  DO UPDATE SET
+    last_login = CURRENT_TIMESTAMP,
+    avatar_url = EXCLUDED.avatar_url,
+    name = EXCLUDED.name,
+    is_verified = TRUE
+  RETURNING id, google_id, email, name, avatar_url, role, plan;
+`;
 
     const values = [googleId, email, name, avatarUrl];
     const result = await db.query(upsertQuery, values);
@@ -169,11 +177,13 @@ class AuthService {
 
     // Filter out sensitive data before returning
     const safeUser = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      avatar_url: user.avatar_url,
-    };
+  id: user.id,
+  email: user.email,
+  name: user.name,
+  avatar_url: user.avatar_url,
+  role: user.role || "user",
+  plan: user.plan || "free",
+};
 
     return { user: safeUser, systemToken };
   }
