@@ -41,10 +41,16 @@ class AuthService {
     const user = result.rows[0];
 
     // 3. Generate internal application JWT
+    // 6. Generate the login session JWT
     const systemToken = jwt.sign(
-      { id: user.id, email: user.email },
+      { 
+        id: user.id, 
+        email: user.email,
+        role: user.role, // NEW: Inject the role
+        plan: user.plan  // NEW: Inject the plan
+      },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' } // Session valid for 24 hours
+      { expiresIn: '1d' }
     );
 
     return { user, systemToken };
@@ -156,7 +162,7 @@ class AuthService {
 
     // 6. Generate the login session JWT
     const systemToken = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email , role: user.role, plan: user.plan},
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );

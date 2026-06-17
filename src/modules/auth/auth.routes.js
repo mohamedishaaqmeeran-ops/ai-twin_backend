@@ -4,6 +4,7 @@ const { protect } = require('../../middleware/authMiddleware');
 const { authLimiter } = require('../../middleware/rateLimiter');
 const { validate } = require('../../middleware/validate'); // Import the validation engine
 const schemas = require('./auth.validation'); // Import your specific rules
+const { requireAdmin, requirePlan } = require('../../middleware/roleMiddleware');
 
 const router = express.Router();
 
@@ -12,6 +13,8 @@ router.post('/register', authLimiter, validate(schemas.signupSchema), authContro
 router.post('/login', authLimiter, validate(schemas.loginSchema), authController.handleLogin);
 router.post('/forgot-password', authLimiter, validate(schemas.forgotPasswordSchema), authController.handleForgotPassword);
 router.post('/reset-password', authLimiter, validate(schemas.resetPasswordSchema), authController.handleResetPassword);
+
+
 
 // Standard routes
 router.post('/google', authController.handleGoogleLogin);

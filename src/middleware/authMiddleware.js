@@ -20,9 +20,12 @@ const protect = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // 4. Attach user context to the request object
+    // 4. Attach user context to the request object
     req.user = {
       id: decoded.id,
-      email: decoded.email
+      email: decoded.email,
+      role: decoded.role, // NEW: Pass the role to the next bouncer
+      plan: decoded.plan  // NEW: Pass the plan to the next bouncer
     };
 
     // 5. Pass control to the next handler/controller
