@@ -139,54 +139,61 @@ class AuthService {
    * Authenticates an existing user via Email and Password
    */
   async loginWithEmail(email, password) {
-    // 1. Find the user by email
-    const query = 'SELECT * FROM users WHERE email = $1';
-    const result = await db.query(query, [email]);
+  email = email.trim().toLowerCase();
 
-    if (result.rows.length === 0) {
-      throw new Error('Invalid email or password.');
-    }
+  const query = "SELECT * FROM users WHERE LOWER(email) = LOWER($1)";
+  const result = await db.query(query, [email]);
 
-    const user = result.rows[0];
+  console.log("LOGIN EMAIL:", email);
+  console.log("ROWS FOUND:", result.rows.length);
 
-    // 2. Prevent Google users from getting stuck if they try to type a password
-    if (user.google_id && !user.password_hash) {
-      throw new Error('This account is linked to Google. Please use the "Sign in with Google" button.');
-    }
-
-    // 3. Compare the typed password with the hashed password in the database
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-    if (!isPasswordValid) {
-      throw new Error('Invalid email or password.');
-    }
-
-    // 4. Check if they have verified their email
-    // if (!user.is_verified) {
-    //   throw new Error('Please verify your email address before logging in.');
-    // }
-
-    // 5. Update their last_login timestamp
-    await db.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [user.id]);
-
-    // 6. Generate the login session JWT
-    const systemToken = jwt.sign(
-      { id: user.id, email: user.email , role: user.role, plan: user.plan},
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
-
-    // Filter out sensitive data before returning
-    const safeUser = {
-  id: user.id,
-  email: user.email,
-  name: user.name,
-  avatar_url: user.avatar_url,
-  role: user.role || "user",
-  plan: user.plan || "free",
-};
-
-    return { user: safeUser, systemToken };
+  if (result.rows.length === 0) {
+    throw new Error("Invalid email or password.");
   }
+
+  const user = result.rows[0];
+
+  console.log("HASH EXISTS:", !!user.password_hash);
+
+  if (!user.password_hash) {
+    throw new Error("Invalid email or password.");
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+  console.log("PASSWORD VALID:", isPasswordValid);
+
+  if (!isPasswordValid) {
+    throw new Error("Invalid email or password.");
+  }
+
+  await db.query(
+    "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1",
+    [user.id]
+  );
+
+  const systemToken = jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role || "user",
+      plan: user.plan || "free",
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  const safeUser = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    avatar_url: user.avatar_url,
+    role: user.role || "user",
+    plan: user.plan || "free",
+  };
+
+  return { user: safeUser, systemToken };
+}
 
   /**
    * Generates a reset token and sends the email
