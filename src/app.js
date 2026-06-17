@@ -18,7 +18,7 @@ const allowedOrigins = [
     'http://localhost:5500',
 
     'https://ai-twin-63zh.vercel.app',
-    'https://ai-twin-git-1064507568780.asia-south1.run.app ' // <-- Your new live frontend domain!
+    'https://ai-twin-git-1064507568780.asia-south1.run.app' // <-- Your new live frontend domain!
 
   // <-- Your new live frontend domain!
 
