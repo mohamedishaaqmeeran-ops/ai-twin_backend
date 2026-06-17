@@ -37,35 +37,58 @@ class AuthController {
   /**
    * Handles traditional Email/Password Signup
    */
-  async handleSignup(req, res, next) {
-    try {
-      const { email, password, confirmPassword, name, mobileNumber } = req.body;
-      // Basic Validation
-      if (!email || !password || !name || !mobileNumber) {
-        return res.status(400).json({ error: 'Email, password, and name are required' });
-      }
+ async handleSignup(req, res, next) {
+  try {
+    let { email, password, confirmPassword, name, mobileNumber } = req.body;
 
-      if (password.length < 8) {
-        return res.status(400).json({ error: 'Password must be at least 8 characters long' });
-      }
+    email = email?.trim().toLowerCase();
+    name = name?.trim();
+    mobileNumber = mobileNumber?.trim();
 
-      // Execute the signup service
-      await authService.signupWithEmail(email, password, name, mobileNumber);
-
-      // Note: We do NOT send an HttpOnly cookie back here. 
-      // The user must verify their email before they are allowed to log in.
-      return res.status(201).json({
-        message: 'Account created successfully.',
+    if (!email || !password || !confirmPassword || !name || !mobileNumber) {
+      return res.status(400).json({
+        error: "All fields are required",
       });
-
-    } catch (error) {
-      // If the service threw our custom "account exists" error, send a 400
-      if (error.message.includes('already exists') || error.message.includes('Google account')) {
-         return res.status(400).json({ error: error.message });
-      }
-      next(error);
     }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        error: "Passwords do not match",
+      });
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        error:
+          "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one symbol.",
+      });
+    }
+
+    const user = await authService.signupWithEmail(
+      email,
+      password,
+      name,
+      mobileNumber
+    );
+
+    return res.status(201).json({
+      message: "Account created successfully.",
+      user,
+    });
+  } catch (error) {
+    if (
+      error.message.includes("already exists") ||
+      error.message.includes("Google account")
+    ) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    next(error);
   }
+}
 
   /**
    * Handles incoming email verification requests
@@ -107,39 +130,45 @@ class AuthController {
   /**
    * Handles traditional Email/Password Login
    */
-  async handleLogin(req, res, next) {
-    try {
-      const { email, password } = req.body;
+ async handleLogin(req, res, next) {
+  try {
+    let { email, password } = req.body;
 
-      if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
-      }
+    email = email?.trim().toLowerCase();
 
-      // Execute login service
-      const { user, systemToken } = await authService.loginWithEmail(email, password);
-
-      // Issue the secure cookie
-      res.cookie('token', systemToken, {
-        httpOnly: true,
-        secure: true,       // REQUIRED: Tells the browser it's safe to send over HTTPS (Railway)
-        sameSite: 'none',   // REQUIRED: Allows your local HTML file to send cookies to the live server
-        path: '/',          // CRITICAL: Tells the cookie it is allowed to go to /api/admin, not just /api/auth
-        maxAge: 24 * 60 * 60 * 1000 // 1 day (or whatever you currently have)
-      });
-
-      return res.status(200).json({
-        message: 'Login successful',
-        user,
-      });
-
-    } catch (error) {
-      // Send safe, generic error messages back to the frontend
-      if (error.message.includes('Invalid') || error.message.includes('Google') || error.message.includes('verify')) {
-        return res.status(401).json({ error: error.message });
-      }
-      next(error);
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
     }
+
+    const { user, systemToken } = await authService.loginWithEmail(
+      email,
+      password
+    );
+
+    res.cookie("token", systemToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: "Login successful",
+      user,
+    });
+  } catch (error) {
+    if (
+      error.message.includes("Invalid") ||
+      error.message.includes("Google") ||
+      error.message.includes("verify")
+    ) {
+      return res.status(401).json({ error: error.message });
+    }
+
+    next(error);
   }
+}
 
   async handleForgotPassword(req, res, next) {
     try {
