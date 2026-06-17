@@ -15,6 +15,7 @@ const allowedOrigins = [
   "http://localhost:5500",
   "https://ai-twin-63zh.vercel.app",
   "https://ai-twin-git-1064507568780.asia-south1.run.app",
+  "https://twinn.live"
 ];
 
 app.use(
